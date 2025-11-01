@@ -1,6 +1,6 @@
 # Redfisher
 ## Intro
-The Redfisher is a tool that can interface with one or more devices via the RedFish API and provides very basic observability + management tooling. It has an API service that can receive calls making queries about the status of either a specific piece of hardware, or all the pieces of hardware. It can also receive calls requesting that basic tasks be performed on the boards under management, such as power on/power off/reboot.
+The Redfisher is a tool that can interface with one or more devices via the RedFish API and provides very basic observability + management tooling. It has an API service that can receive calls making queries about the status of either a specific piece of hardware, or all the pieces of hardware. It can also receive calls requesting that basic tasks be performed on the boards under management, such as add/remove boards, power on/off, or reboot.
 
 ## Design
 Redfisher has a basic API server that receives all calls made to it, and can either make calls directly to the boards (for management tasks) or can query the DB for status items. 
@@ -11,3 +11,14 @@ The Postgres DB will be fairly simple: there will be one table with a composite 
 Basic tasks (power on/off, add/remove board, restart) will be handled directly by the API server, which will send commands to the board specified. The addresses of the boards will be stored in a REDIS cache, keyed by their ID. We might use GRPC for these requests, but the underlying calls to RedFish will have to be REST.
 
 To populate the DB with information, we will have a worker that fetches the information every second and writes it to the DB. In the future, we will add a cleanup worker to move data past 1 month of age to cold storage. After 1 year, it will be deleted from cold storage.
+
+## API Definition
+Redfisher implements the following API endpoints:
+```
+/v1/boardinfo                      # gets latest info for all boards
+/v1/boardinfo/<boardID>            # gets latest info for a specific board
+/v1/subscribe                      # subscribes for once-a-second updates for all boards
+/v1/subscribe/<boardID>            # subscribes for once-a-second updates for a specific boards
+/v1/power/<on/off>                 # gets latest info for all boards
+/v1/inventory/<add/remove>         # add or remove a board from inventory
+```
